@@ -2,7 +2,7 @@ const gulp = require("gulp");
 const webpack = require("webpack-stream");
 const sass = require("gulp-sass");
 
-const dist = "path_to_admin";
+const dist = "W:/domains/project/admin";
 // Здесь должен быть путь к папке admin в вашем проекте на локальном сервере
 
 gulp.task("copy-html", () => {
