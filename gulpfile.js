@@ -2,7 +2,7 @@ const gulp = require("gulp");
 const webpack = require("webpack-stream");
 const sass = require("gulp-sass");
 
-const dist = "W:/domains/project/admin";
+const dist = "../../courses/php-udemy/www/udemy-php-react/admin";
 // Здесь должен быть путь к папке admin в вашем проекте на локальном сервере
 
 gulp.task("copy-html", () => {
