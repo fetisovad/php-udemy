@@ -7,6 +7,7 @@ import Spinner from '../spinner';
 import ConfirmModal from '../confirm-modal';
 import ChooseModal from '../choose-modal';
 import Panel from "../panel/Panel.js";
+import UIkit from 'uikit'
 
 export default class Editor extends Component {
     constructor() {
@@ -18,11 +19,11 @@ export default class Editor extends Component {
             newPageName: "",
             loading: true
         }
-        this.createNewPage = this.createNewPage.bind(this);
         this.isLoading = this.isLoading.bind(this);
         this.isLoaded = this.isLoaded.bind(this);
         this.save = this.save.bind(this);
         this.init = this.init.bind(this);
+        this.restoreBackup = this.restoreBackup.bind(this)
     }
 
     componentDidMount() {
@@ -61,12 +62,12 @@ export default class Editor extends Component {
         this.loadBackupsList();
     }
 
-    save(onSuccess, onError) {
+    async save(onSuccess, onError) {
         this.isLoading();
         const newDom = this.virtualDom.cloneNode(this.virtualDom);
         DOMHelper.unwrapTextNodes(newDom);
         const html = DOMHelper.serializeDOMToString(newDom);
-        axios
+        await axios
             .post("./api/savePage.php", {pageName: this.currentPage, html})
             .then(onSuccess)
             .catch(onError)
@@ -106,7 +107,7 @@ export default class Editor extends Component {
 
     loadBackupsList() {
         axios
-            .get('./api/backups/backups.json')
+            .get('./backups/backups.json')
             .then(res => this.setState({
                 backupsList: res.data.filter(backup => {
                     return backup.page === this.currentPage;
@@ -114,18 +115,21 @@ export default class Editor extends Component {
             }))
     }
 
-    createNewPage() {
-        axios
-            .post("./api/createNewPage.php", {"name": this.state.newPageName})
-            .then(this.loadPageList())
-            .catch(() => alert("Страница уже существует!"));
-    }
+    restoreBackup(e, backup) {
 
-    deletePage(page) {
-        axios
-            .post("./api/deletePage.php", {"name": page})
-            .then(this.loadPageList())
-            .catch(() => alert("Страницы не существует!"));
+        if(e) {
+            e.preventDefault();
+        }
+        UIkit.modal.confirm('Вы действительно хотите восстановить страницу из этой резервной копии? Все несохраненные данные будут потеряны!', {
+            labels: {ok: 'Восстановить', cancel: 'Отмена'}
+        }).then(() => {
+            this.isLoading();
+            return axios
+                .post('./api/restoreBackup.php', {page: this.currentPage, file: backup})
+        })
+            .then(() => {
+                this.open(this.currentPage, this.isLoaded)
+            })
     }
 
     isLoading() {
@@ -142,24 +146,20 @@ export default class Editor extends Component {
 
     render() {
         const {loading, pageList, backupsList} = this.state;
+
         const modal = true;
         let spinner;
 
         loading ? spinner = <Spinner active/> : spinner = <Spinner/>
 
-        console.log(backupsList)
-
         return (
             <>
-                <iframe src='' frameBorder="0"></iframe>
-
+                <iframe src='' frameBorder="0"/>
                 {spinner}
-
                 <Panel/>
-
                 <ConfirmModal modal={modal} target={'modal-save'} method={this.save}/>
                 <ChooseModal modal={modal} target={'modal-open'} data={pageList} redirect={this.init}/>
-                <ChooseModal modal={modal} target={'modal-backup'} data={pageList} redirect={this.init}/>
+                <ChooseModal modal={modal} target={'modal-backup'} data={backupsList} redirect={this.restoreBackup}/>
             </>
         )
     }
