@@ -3,6 +3,7 @@ import React, {Component} from "react";
 import '../../helpers/iframeLoader'
 import DOMHelper from "../../helpers/dom-helper";
 import EditorText from "../editorText";
+import UIkit from 'uikit'
 
 export default class Editor extends Component {
     constructor() {
@@ -44,26 +45,28 @@ export default class Editor extends Component {
             .then(() => this.injectStyles())
     }
 
-    save() {
+    save(onSucces, onError) {
         const newDom = this.virtualDom.cloneNode(this.virtualDom);
         DOMHelper.unwrapTextNodes(newDom)
         const html = DOMHelper.serializeDOMToString(newDom)
         axios
             .post('./api/savePage.php', {'pageName': this.currentPage, html})
+            .then(onSucces)
+            .catch(onError)
     }
 
     enableEditing() {
         this.iframe.contentDocument.body.querySelectorAll('text-editor').forEach(element => {
-          const id = element.getAttribute('nodeid');
-          const virtualElement = this.virtualDom.body.querySelector(`[nodeid="${id}"]`)
+            const id = element.getAttribute('nodeid');
+            const virtualElement = this.virtualDom.body.querySelector(`[nodeid="${id}"]`)
 
-          new EditorText(element, virtualElement)
+            new EditorText(element, virtualElement)
         })
     }
 
     injectStyles() {
-      const style = this.iframe.contentDocument.createElement('style')
-      style.innerHTML = `
+        const style = this.iframe.contentDocument.createElement('style')
+        style.innerHTML = `
         text-editor:hover {
           outline: 3px solid orange;
           outline-offset: 8px;
@@ -75,7 +78,7 @@ export default class Editor extends Component {
         }
       `
 
-      this.iframe.contentDocument.head.appendChild(style)
+        this.iframe.contentDocument.head.appendChild(style)
     }
 
     loadPageList() {
@@ -97,31 +100,43 @@ export default class Editor extends Component {
     }
 
     render() {
-        // const {pageList} = this.state;
-        //
-        // const pages = pageList.map((page, index) => {
-        //     return (
-        //         <>
-        //             <h1 key={index}>{page}
-        //                 <a href="#" onClick={() => this.deletePage(page)}>(X)</a>
-        //             </h1>
-        //         </>
-        //     )
-        // })
+        const modal = true;
 
         return (
             <>
-                <button onClick={() => this.save()}>Click</button>
-                <iframe src={this.currentPage}></iframe>
-            </>
+                <iframe src={this.currentPage}/>
 
-        //     <>
-        //         <input onChange={(e) => {
-        //             this.setState({newPageName: e.target.value})
-        //         }} type='text'/>
-        //         <button onClick={this.createNewPage}>Создать страницу</button>
-        //         {pages}
-        //     </>
+                <div className='panel'>
+                    <button
+                        className="uk-button uk-button-primary"
+                        // uk-toggle='target: #modal-save'
+                        onClick={() => this.save(
+                            () => {
+                                UIkit.notification({message: 'Успешно сохранено', status: 'success'})
+                            },
+                            () => {
+                                UIkit.notification({message: 'Ошибка сохранения', status: 'danger'})
+                            }
+                        )}>Опубликовать
+                    </button>
+                </div>
+
+                {/*<div id="modal-save" uk-modal={modal.toString()}>*/}
+                {/*<div className="uk-modal-dialog uk-modal-body">*/}
+                {/*        <h2 className="uk-modal-title">Сохранение</h2>*/}
+                {/*        <p>Вы действительно хотите сохранить изменения?</p>*/}
+                {/*        <div className="uk-text-right">*/}
+                {/*            <button*/}
+                {/*                className="uk-button uk-button-default uk-modal-close" type="button">Отменить*/}
+                {/*            </button>*/}
+                {/*            <button*/}
+                {/*                className="uk-button uk-button-primary"*/}
+                {/*                type="button"*/}
+                {/*            >Сохранить</button>*/}
+                {/*        </div>*/}
+                {/*    </div>*/}
+                {/*</div>*/}
+            </>
         )
     }
 }
