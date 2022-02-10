@@ -8,6 +8,7 @@ import ConfirmModal from '../confirm-modal';
 import ChooseModal from '../choose-modal';
 import Panel from "../panel/Panel.js";
 import UIkit from 'uikit'
+import EditorMeta from "../editorMeta";
 
 export default class Editor extends Component {
     constructor() {
@@ -160,6 +161,7 @@ export default class Editor extends Component {
                 <ConfirmModal modal={modal} target={'modal-save'} method={this.save}/>
                 <ChooseModal modal={modal} target={'modal-open'} data={pageList} redirect={this.init}/>
                 <ChooseModal modal={modal} target={'modal-backup'} data={backupsList} redirect={this.restoreBackup}/>
+                {this.virtualDom ? <EditorMeta modal={modal} target={'modal-meta'} virtualDom={this.virtualDom}/> : false}
             </>
         )
     }
