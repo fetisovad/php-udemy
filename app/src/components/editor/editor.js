@@ -6,7 +6,6 @@ import EditorText from '../editorText';
 import Spinner from '../spinner';
 import ConfirmModal from '../confirm-modal';
 import ChooseModal from '../choose-modal';
-import UIkit from "uikit";
 
 export default class Editor extends Component {
     constructor() {
@@ -141,24 +140,11 @@ export default class Editor extends Component {
 
                 <div className="panel">
                     <button className="uk-button uk-button-primary uk-margin-small-right" uk-toggle="target: #modal-open">Открыть</button>
-                    {/*<button className="uk-button uk-button-primary" uk-toggle="target: #modal-save">Опубликовать</button>*/}
-                    <button
-                        className="uk-button uk-button-primary"
-                        // uk-toggle='target: #modal-save'
-                        onClick={() => this.save(
-                            () => {
-                                UIkit.notification({message: 'Успешно сохранено', status: 'success'})
-                            },
-                            () => {
-                                UIkit.notification({message: 'Ошибка сохранения', status: 'danger'})
-                            }
-                        )}>Опубликовать
-                    </button>
-
-
-                    {/*<ConfirmModal modal={modal}  target={'modal-save'} method={this.save}/>*/}
-                    <ChooseModal modal={modal}  target={'modal-open'} data={pageList} redirect={this.init}/>
+                    <button className="uk-button uk-button-primary" uk-toggle="target: #modal-save">Опубликовать</button>
                 </div>
+
+                <ConfirmModal modal={modal}  target={'modal-save'} method={this.save}/>
+                <ChooseModal modal={modal}  target={'modal-open'} data={pageList} redirect={this.init}/>
             </>
         )
     }
