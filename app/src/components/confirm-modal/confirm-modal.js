@@ -3,7 +3,7 @@ import UIkit from 'uikit';
 
 const ConfirmModal = ({modal, target, method}) => {
     return (
-        <div id={target} uk-modal={modal.toString()}>
+        <div id={target} uk-modal={modal.toString()} container='false'>
             <div className="uk-modal-dialog uk-modal-body">
                 <h2 className="uk-modal-title">Сохранение</h2>
                 <p>Вы действительно хотите сохранить изменения?</p>
