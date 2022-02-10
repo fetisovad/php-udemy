@@ -25,12 +25,5 @@ export default class EditorText {
 
   onTextEdit() {
     this.virtualElement.innerHTML = this.element.innerHTML;
-
-
-
-    // element.contentEditable = "true";
-    //         element.addEventListener('input', () => {
-    //             this.onTextEdit(element);
-    //         })
   }
 }
