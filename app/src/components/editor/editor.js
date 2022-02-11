@@ -9,6 +9,7 @@ import ChooseModal from '../choose-modal';
 import Panel from "../panel/Panel.js";
 import UIkit from 'uikit'
 import EditorMeta from "../editorMeta";
+import EditorImages from "../editorImages";
 
 export default class Editor extends Component {
     constructor() {
@@ -49,6 +50,7 @@ export default class Editor extends Component {
             .get(`../${page}?rnd=${Math.random()}`)
             .then(res => DOMHelper.parseStrToDOM(res.data))
             .then(DOMHelper.wrapTextNodes)
+            .then(DOMHelper.wrapImages)
             .then(dom => {
                 this.virtualDom = dom;
                 return dom;
@@ -63,25 +65,33 @@ export default class Editor extends Component {
         this.loadBackupsList();
     }
 
-    async save(onSuccess, onError) {
+    async save() {
         this.isLoading();
         const newDom = this.virtualDom.cloneNode(this.virtualDom);
         DOMHelper.unwrapTextNodes(newDom);
+        DOMHelper.unWrapImages(newDom);
         const html = DOMHelper.serializeDOMToString(newDom);
         await axios
             .post("./api/savePage.php", {pageName: this.currentPage, html})
-            .then(onSuccess)
-            .catch(onError)
+            .then(() => this.showNotifications('Успешно сохранено!', 'success'))
+            .catch(() => this.showNotifications('Ошибка сохранения!', 'error'))
             .finally(this.isLoaded);
         this.loadBackupsList();
     }
 
     enableEditing() {
-        this.iframe.contentDocument.body.querySelectorAll("text-editor").forEach(element => {
+        this.iframe.contentDocument.body.querySelectorAll("[nodeid]").forEach(element => {
             const id = element.getAttribute("nodeid");
             const virtualElement = this.virtualDom.body.querySelector(`[nodeid="${id}"]`);
 
             new EditorText(element, virtualElement);
+        });
+
+        this.iframe.contentDocument.body.querySelectorAll("[editableImgId]").forEach(element => {
+            const id = element.getAttribute("editableImgId");
+            const virtualElement = this.virtualDom.body.querySelector(`[editableImgId="${id}"]`);
+
+            new EditorImages(element, virtualElement, this.isLoaded, this.isLoading, this.showNotifications);
         });
     }
 
@@ -96,8 +106,16 @@ export default class Editor extends Component {
                 outline: 3px solid red;
                 outline-offset: 8px;
             }
+            [editableImgId]:hover {
+                outline: 3px solid orange;
+                outline-offset: 8px;
+            }
         `;
         this.iframe.contentDocument.head.appendChild(style);
+    }
+
+    showNotifications(message, status) {
+        UIkit.notification({message, status})
     }
 
     loadPageList() {
@@ -156,6 +174,7 @@ export default class Editor extends Component {
         return (
             <>
                 <iframe src='' frameBorder="0"/>
+                <input type="file" id='img-upload' accept='image/*' style={{display: "none"}}/>
                 {spinner}
                 <Panel/>
                 <ConfirmModal modal={modal} target={'modal-save'} method={this.save}/>
